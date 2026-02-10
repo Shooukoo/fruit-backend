@@ -1,0 +1,91 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - R2_ENDPOINT=http://minio:9000
+      - R2_ACCESS_KEY_ID=admin
+      - R2_SECRET_ACCESS_KEY=password123
+      - R2_BUCKET_NAME=fruit-images
+      - S3_FORCE_PATH_STYLE=true
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    networks:
+      - fruit-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fruit-net
+
+  minio:
+    image: minio/minio
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password123
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - fruit-net
+    volumes:
+      - minio_data:/data
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        # Wait for MinIO to be fully ready
+        until /usr/bin/mc alias set myminio http://minio:9000 admin password123; do
+          echo 'Waiting for MinIO...'
+          sleep 1
+        done
+
+        # Create bucket if it doesn't exist (ignore error if it does)
+        /usr/bin/mc mb myminio/fruit-images || true
+
+        # Set policy
+        /usr/bin/mc anonymous set public myminio/fruit-images
+
+        echo 'Bucket setup complete.'
+        exit 0
+    networks:
+      - fruit-net
+
+networks:
+  fruit-net:
+    driver: bridge
+
+volumes:
+  minio_data:
