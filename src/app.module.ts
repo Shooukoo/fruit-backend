@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -17,9 +15,8 @@ import { APP_GUARD } from '@nestjs/core';
     ]),
     IngestionModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

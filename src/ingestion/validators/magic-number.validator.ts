@@ -26,18 +26,14 @@ export class MagicNumberValidator {
       const onData = (chunk: Buffer) => {
         buffer = Buffer.concat([buffer, chunk]);
 
-        // Accumulate until we have at least 4 bytes (header size)
         if (buffer.length >= 4) {
           stream.removeListener('data', onData);
-          stream.pause(); // Pause stream consumption
+          stream.pause();
 
           if (this.isValid(buffer)) {
-            // Unshift the ENTIRE accumulated buffer back to the stream
-            // so the next consumer receives the full content intact.
             stream.unshift(buffer);
             resolve();
           } else {
-            // Destroy stream to prevent further processing
             stream.destroy();
             reject(new BadRequestException('Invalid file type. Only JPG and PNG allowed.'));
           }
@@ -48,7 +44,6 @@ export class MagicNumberValidator {
       
       stream.on('error', (err) => reject(err));
 
-      // Handle edge case where file is smaller than 4 bytes
       stream.on('end', () => {
         if (buffer.length < 4) {
           reject(new BadRequestException('File too short'));

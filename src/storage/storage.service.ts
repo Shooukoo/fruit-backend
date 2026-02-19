@@ -22,7 +22,7 @@ export class StorageService {
     const forcePathStyle = this.configService.get<string>('S3_FORCE_PATH_STYLE') === 'true';
 
     this.s3Client = new S3Client({
-      region: 'us-east-1', // Required for MinIO/Localstack compatibility
+      region: 'us-east-1', 
       endpoint,
       forcePathStyle, 
       credentials: {
@@ -33,9 +33,6 @@ export class StorageService {
   }
 
   async uploadStream(stream: Readable, filename: string, mimeType: string): Promise<string> {
-    // Sanitize filename to prevent directory traversal attacks
-    // We replace anything that is not alphanumeric, dot, dash or underscore with empty string
-    // Alternatively use path.basename() but Regex is safer for extreme cases.
     const safeFilename = filename.replace(/[^a-zA-Z0-9.-_]/g, '');
     const key = `raw/${Date.now()}-${safeFilename}`;
     
@@ -53,8 +50,6 @@ export class StorageService {
       this.logger.log(`Starting upload for ${key}`);
       await parallelUploads3.done();
       this.logger.log(`Upload completed for ${key}`);
-
-      // Returns the internal S3 key. Public access requires a custom domain or presigned URL.
       return key;
     } catch (error) {
       this.logger.error(`Upload failed for ${key}`, error);
