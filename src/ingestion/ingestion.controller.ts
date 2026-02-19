@@ -7,6 +7,15 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  BadRequestException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import '@fastify/multipart';
 import { IngestionService } from './ingestion.service';
@@ -14,6 +23,8 @@ import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('ingestion')
 export class IngestionController {
+  private readonly logger = new Logger(IngestionController.name);
+
   private readonly logger = new Logger(IngestionController.name);
 
   constructor(
@@ -25,7 +36,10 @@ export class IngestionController {
   async upload(@Req() req: FastifyRequest, @Res() res: FastifyReply) {
     let capturedAt: Date | null = null;
 
+    let capturedAt: Date | null = null;
+
     const parts = req.parts();
+
 
     for await (const part of parts) {
       if (part.type === 'field' && part.fieldname === 'capturedAt') {
@@ -52,7 +66,9 @@ export class IngestionController {
             capturedAt,
           );
 
+
           this.client.emit('nueva_fruta', result);
+
 
           return res.status(201).send(result);
         } catch (error) {
@@ -61,6 +77,7 @@ export class IngestionController {
         }
       }
     }
+
 
     throw new BadRequestException('No file uploaded');
   }
