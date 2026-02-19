@@ -4,25 +4,22 @@ import { IngestionService } from './ingestion.service';
 import { StorageModule } from '../storage/storage.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MagicNumberValidator } from './validators/magic-number.validator';
-import { ConfigService } from '@nestjs/config';
+import { envs } from '../config/envs';
 
 @Module({
   imports: [
     StorageModule,
-    ClientsModule.registerAsync([
+    ClientsModule.register([
       {
         name: 'FRUITS_SERVICE',
-        inject: [ConfigService],
-        useFactory: (config: ConfigService) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [config.getOrThrow<string>('RABBITMQ_URL')],
-            queue: config.getOrThrow<string>('RABBITMQ_QUEUE'),
-            queueOptions: {
-              durable: true,
-            },
+        transport: Transport.RMQ,
+        options: {
+          urls: [envs.rabbitmqUrl],
+          queue: envs.rabbitmqQueue,
+          queueOptions: {
+            durable: true,
           },
-        }),
+        },
       },
     ]),
   ],

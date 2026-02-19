@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Readable } from 'stream';
+import { envs } from '../config/envs';
 
 @Injectable()
 export class StorageService {
@@ -10,24 +10,16 @@ export class StorageService {
   private bucketName: string;
   private readonly logger = new Logger(StorageService.name);
 
-  constructor(private configService: ConfigService) {
-    const endpoint = this.configService.get<string>('R2_ENDPOINT');
-    const accessKeyId = this.configService.get<string>('R2_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('R2_SECRET_ACCESS_KEY');
-    this.bucketName = this.configService.get<string>('R2_BUCKET_NAME') || '';
-
-    if (!endpoint || !accessKeyId || !secretAccessKey) {
-      this.logger.warn('R2 credentials not fully configured. Uploads will fail.');
-    }
-    const forcePathStyle = this.configService.get<string>('S3_FORCE_PATH_STYLE') === 'true';
+  constructor() {
+    this.bucketName = envs.r2BucketName;
 
     this.s3Client = new S3Client({
-      region: 'us-east-1', 
-      endpoint,
-      forcePathStyle, 
+      region: 'us-east-1',
+      endpoint: envs.r2Endpoint,
+      forcePathStyle: false,
       credentials: {
-        accessKeyId: accessKeyId || '',
-        secretAccessKey: secretAccessKey || '',
+        accessKeyId: envs.r2AccessKeyId,
+        secretAccessKey: envs.r2SecretAccessKey,
       },
     });
   }
