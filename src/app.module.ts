@@ -16,7 +16,6 @@ import { APP_GUARD } from '@nestjs/core';
     IngestionModule,
   ],
   controllers: [],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,

@@ -47,10 +47,6 @@ export class IngestionService {
         capturedAt: resolvedCapturedAt.toISOString(),
         processedAt: processedAt.toISOString(),
       },
-      metadata: {
-        capturedAt: resolvedCapturedAt.toISOString(),
-        processedAt: processedAt.toISOString(),
-      },
       status: 'UPLOADED',
     };
 
@@ -58,11 +54,6 @@ export class IngestionService {
       `Upload complete: ${filename} | capturedAt=${result.metadata.capturedAt} | processedAt=${result.metadata.processedAt}`,
     );
 
-    this.logger.log(
-      `Upload complete: ${filename} | capturedAt=${result.metadata.capturedAt} | processedAt=${result.metadata.processedAt}`,
-    );
-
-    return result;
     return result;
   }
 }

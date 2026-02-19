@@ -7,15 +7,6 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import {
-  Controller,
-  Post,
-  Req,
-  Res,
-  BadRequestException,
-  Inject,
-  Logger,
-} from '@nestjs/common';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import '@fastify/multipart';
 import { IngestionService } from './ingestion.service';
@@ -25,8 +16,6 @@ import { ClientProxy } from '@nestjs/microservices';
 export class IngestionController {
   private readonly logger = new Logger(IngestionController.name);
 
-  private readonly logger = new Logger(IngestionController.name);
-
   constructor(
     private readonly ingestionService: IngestionService,
     @Inject('FRUITS_SERVICE') private readonly client: ClientProxy,
@@ -34,8 +23,6 @@ export class IngestionController {
 
   @Post('upload')
   async upload(@Req() req: FastifyRequest, @Res() res: FastifyReply) {
-    let capturedAt: Date | null = null;
-
     let capturedAt: Date | null = null;
 
     const parts = req.parts();
